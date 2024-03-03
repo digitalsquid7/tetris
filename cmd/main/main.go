@@ -3,7 +3,8 @@ package main
 import (
 	"log/slog"
 	"os"
-	"tetris/pkg/tetrisrun"
+
+	"github.com/digitalsquid7/tetris/pkg/tetrisrun"
 
 	"github.com/gopxl/pixel/pixelgl"
 )
