@@ -16,6 +16,7 @@ type GameState struct {
 	tetrominoQueue   *tetrominoqueue.TetrominoQueue
 	tetrominoHeld    *tetromino.Tetromino
 	tetrominoSwapped bool
+	gameOver         bool
 	moveStart        time.Time
 	moveDelay        <-chan time.Time
 	dropDelay        <-chan time.Time
@@ -33,7 +34,7 @@ func New() *GameState {
 		tetrominoQueue:   tetrominoQueue,
 		moveDelay:        time.Tick(time.Millisecond * 50),
 		dropDelay:        time.Tick(time.Millisecond * 50),
-		downTicker:       time.Tick(time.Millisecond * 250),
+		downTicker:       time.Tick(time.Millisecond * 500),
 	}
 }
 
@@ -161,6 +162,21 @@ func (g *GameState) GhostCoordinates() []coordinate.Coordinate {
 	}
 
 	return coors
+}
+
+func (g *GameState) TopOut() bool {
+	if !g.board.FreeSpace(g.currentTetromino.Coordinates()) {
+		for g.board.Collision(g.currentTetromino.Coordinates()) {
+			g.currentTetromino.MoveUp(1)
+		}
+		g.gameOver = true
+	}
+
+	return g.gameOver
+}
+
+func (g *GameState) GameOver() bool {
+	return g.gameOver
 }
 
 func (g *GameState) newTetromino() {

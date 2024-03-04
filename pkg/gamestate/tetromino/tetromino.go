@@ -60,6 +60,10 @@ func (t *Tetromino) MoveDown(amount int) {
 	t.pivot = t.pivot.Down(amount)
 }
 
+func (t *Tetromino) MoveUp(amount int) {
+	t.pivot = t.pivot.Up(amount)
+}
+
 func (t *Tetromino) RotateClockwise() {
 	t.direction = t.direction.Clockwise()
 }

@@ -10,7 +10,7 @@ func NewO() *Tetromino {
 	return New(
 		tetrissprites.RedBlock,
 		tetrissprites.RedTetromino,
-		coordinate.New(5, 1),
+		coordinate.New(5, 0),
 		FindOCoordinates,
 	)
 }

@@ -10,7 +10,7 @@ func NewZ() *Tetromino {
 	return New(
 		tetrissprites.CyanBlock,
 		tetrissprites.CyanTetromino,
-		coordinate.New(5, 1),
+		coordinate.New(4, 1),
 		FindZCoordinates,
 	)
 }

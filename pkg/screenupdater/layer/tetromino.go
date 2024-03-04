@@ -25,6 +25,10 @@ func (b *Tetromino) Update(window *pixelgl.Window) {
 	sprite := b.state.CurrentTetromino().BlockSprite()
 
 	for _, coor := range b.state.GhostCoordinates() {
+		if coor.Y() < 0 {
+			continue
+		}
+
 		x := float64(blockOffset + (coor.X() * blockSize))
 		y := float64(screenHeight - (blockOffset + (coor.Y() * blockSize)))
 		b.sprites[sprite].DrawColorMask(window, pixel.IM.Moved(pixel.V(x, y)), color.Alpha{64})

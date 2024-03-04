@@ -10,7 +10,7 @@ func NewJ() *Tetromino {
 	return New(
 		tetrissprites.PinkBlock,
 		tetrissprites.PinkTetromino,
-		coordinate.New(5, 1),
+		coordinate.New(4, 1),
 		FindJCoordinates,
 	)
 }

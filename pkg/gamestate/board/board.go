@@ -38,6 +38,20 @@ func (b *Board) FreeSpace(coors []coordinate.Coordinate) bool {
 	return true
 }
 
+func (b *Board) Collision(coors []coordinate.Coordinate) bool {
+	for _, coor := range coors {
+		if coor.Y() < 0 || coor.Y() > 19 || coor.X() < 0 || coor.X() > 9 {
+			continue
+		}
+
+		if b.Blocks[coor.Y()][coor.X()] != nil {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (b *Board) InSideBounds(coors []coordinate.Coordinate) bool {
 	for _, coor := range coors {
 		if coor.X() < 0 || coor.X() > 9 {
@@ -50,7 +64,9 @@ func (b *Board) InSideBounds(coors []coordinate.Coordinate) bool {
 
 func (b *Board) LockInPlace(tetromino *tetromino.Tetromino) {
 	for _, coor := range tetromino.Coordinates() {
-		b.Blocks[coor.Y()][coor.X()] = NewBlock(tetromino.BlockSprite())
+		if coor.Y() > -1 {
+			b.Blocks[coor.Y()][coor.X()] = NewBlock(tetromino.BlockSprite())
+		}
 	}
 }
 

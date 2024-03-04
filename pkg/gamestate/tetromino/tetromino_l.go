@@ -10,7 +10,7 @@ func NewL() *Tetromino {
 	return New(
 		tetrissprites.GreenBlock,
 		tetrissprites.GreenTetromino,
-		coordinate.New(5, 1),
+		coordinate.New(4, 1),
 		FindLCoordinates,
 	)
 }

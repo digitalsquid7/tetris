@@ -18,8 +18,16 @@ func NewExecutor(state *gamestate.GameState, window *pixelgl.Window) *Executor {
 }
 
 func (e *Executor) Execute() {
+	if e.state.GameOver() {
+		return
+	}
+
 	if e.state.Board().ClearLinesInProgress() {
 		e.state.Board().UpdateFullRows()
+		return
+	}
+
+	if e.state.TopOut() {
 		return
 	}
 
