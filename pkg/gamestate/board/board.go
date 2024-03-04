@@ -1,8 +1,10 @@
-package tetrisstate
+package board
 
 import (
 	"time"
 
+	"github.com/digitalsquid7/tetris/pkg/gamestate/coordinate"
+	"github.com/digitalsquid7/tetris/pkg/gamestate/tetromino"
 	"github.com/digitalsquid7/tetris/pkg/tetrissprites"
 )
 
@@ -26,7 +28,7 @@ func NewBoard() *Board {
 	return &Board{}
 }
 
-func (b *Board) FreeSpace(coors []Coordinate) bool {
+func (b *Board) FreeSpace(coors []coordinate.Coordinate) bool {
 	for _, coor := range coors {
 		if coor.Y() < 0 || coor.Y() > 19 || coor.X() < 0 || coor.X() > 9 || b.Blocks[coor.Y()][coor.X()] != nil {
 			return false
@@ -36,7 +38,7 @@ func (b *Board) FreeSpace(coors []Coordinate) bool {
 	return true
 }
 
-func (b *Board) InSideBounds(coors []Coordinate) bool {
+func (b *Board) InSideBounds(coors []coordinate.Coordinate) bool {
 	for _, coor := range coors {
 		if coor.X() < 0 || coor.X() > 9 {
 			return false
@@ -46,7 +48,7 @@ func (b *Board) InSideBounds(coors []Coordinate) bool {
 	return true
 }
 
-func (b *Board) LockInPlace(tetromino *Tetromino) {
+func (b *Board) LockInPlace(tetromino *tetromino.Tetromino) {
 	for _, coor := range tetromino.Coordinates() {
 		b.Blocks[coor.Y()][coor.X()] = NewBlock(tetromino.BlockSprite())
 	}
@@ -97,8 +99,4 @@ func (b *Board) shiftLines() {
 		}
 		b.Blocks[0] = [10]*Block{}
 	}
-}
-
-func ref[T any](val T) *T {
-	return &val
 }

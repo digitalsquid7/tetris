@@ -2,11 +2,12 @@ package tetrissprites
 
 import (
 	"fmt"
-	"github.com/gopxl/pixel"
 	"image"
 	_ "image/png"
 	"log/slog"
 	"os"
+
+	"github.com/gopxl/pixel"
 )
 
 type Name string
@@ -38,7 +39,7 @@ type Loader struct {
 	fileByName map[Name]string
 }
 
-func NewLoader() *Loader {
+func NewLoader(logger *slog.Logger) *Loader {
 	fileByName := map[Name]string{
 		BlueBlock:       "assets/images/blocks/blue_block/blue_block.png",
 		CyanBlock:       "assets/images/blocks/cyan_block/cyan_block.png",
@@ -61,6 +62,7 @@ func NewLoader() *Loader {
 
 	return &Loader{
 		fileByName: fileByName,
+		logger:     logger,
 	}
 }
 

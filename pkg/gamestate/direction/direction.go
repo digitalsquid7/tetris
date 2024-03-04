@@ -1,4 +1,13 @@
-package tetrisstate
+package direction
+
+type Direction string
+
+const (
+	Up    Direction = "up"
+	Right Direction = "right"
+	Down  Direction = "down"
+	Left  Direction = "left"
+)
 
 var clockwise = map[Direction]Direction{
 	Up:    Right,
@@ -13,15 +22,6 @@ var antiClockwise = map[Direction]Direction{
 	Down:  Right,
 	Right: Up,
 }
-
-type Direction string
-
-const (
-	Up    Direction = "up"
-	Right Direction = "right"
-	Down  Direction = "down"
-	Left  Direction = "left"
-)
 
 func (d Direction) Clockwise() Direction {
 	return clockwise[d]

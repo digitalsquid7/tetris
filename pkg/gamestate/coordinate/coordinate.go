@@ -1,8 +1,8 @@
-package tetrisstate
+package coordinate
 
 type Coordinate [2]int
 
-func NewCoordinate(x, y int) Coordinate {
+func New(x, y int) Coordinate {
 	return Coordinate{x, y}
 }
 
