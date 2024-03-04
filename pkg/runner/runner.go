@@ -14,11 +14,7 @@ import (
 )
 
 type Runner struct {
-	logger          *slog.Logger
-	state           *gamestate.GameState
-	screenUpdater   *screenupdater.ScreenUpdater
-	window          *pixelgl.Window
-	commandExecutor *command.Executor
+	logger *slog.Logger
 }
 
 func New(logger *slog.Logger) *Runner {
