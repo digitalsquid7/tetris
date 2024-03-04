@@ -2,16 +2,11 @@ package screenupdater
 
 import (
 	"github.com/digitalsquid7/tetris/pkg/gamestate"
+	"github.com/digitalsquid7/tetris/pkg/screenupdater/layer"
 	"github.com/digitalsquid7/tetris/pkg/tetrissprites"
 
 	"github.com/gopxl/pixel/pixelgl"
 	"golang.org/x/image/colornames"
-)
-
-const (
-	blockOffset  = 52
-	blockSize    = 32
-	screenHeight = 712
 )
 
 type Layer interface {
@@ -34,9 +29,9 @@ func New(
 		window:  window,
 		sprites: sprites,
 		tetrisLayers: []Layer{
-			NewUILayer(state, sprites),
-			NewBlocksLayer(state, sprites),
-			NewTetrominoLayer(state, sprites),
+			layer.NewUI(state, sprites),
+			layer.NewBlocks(state, sprites),
+			layer.NewTetromino(state, sprites),
 		},
 	}
 }

@@ -1,4 +1,4 @@
-package screenupdater
+package layer
 
 import (
 	"github.com/digitalsquid7/tetris/pkg/gamestate"
@@ -7,19 +7,19 @@ import (
 	"github.com/gopxl/pixel/pixelgl"
 )
 
-type UILayer struct {
+type UI struct {
 	state   *gamestate.GameState
 	sprites tetrissprites.Sprites
 }
 
-func NewUILayer(state *gamestate.GameState, sprites tetrissprites.Sprites) *UILayer {
-	return &UILayer{
+func NewUI(state *gamestate.GameState, sprites tetrissprites.Sprites) *UI {
+	return &UI{
 		state:   state,
 		sprites: sprites,
 	}
 }
 
-func (b *UILayer) Update(window *pixelgl.Window) {
+func (b *UI) Update(window *pixelgl.Window) {
 	b.sprites[tetrissprites.Border].Draw(window, pixel.IM.Moved(pixel.V(196, 356)))
 	b.sprites[tetrissprites.Next].Draw(window, pixel.IM.Moved(pixel.V(488, 596)))
 	b.sprites[tetrissprites.Hold].Draw(window, pixel.IM.Moved(pixel.V(488, 384)))

@@ -1,4 +1,4 @@
-package screenupdater
+package layer
 
 import (
 	"image/color"
@@ -9,19 +9,25 @@ import (
 	"github.com/gopxl/pixel/pixelgl"
 )
 
-type BlocksLayer struct {
+const (
+	blockOffset  = 52
+	blockSize    = 32
+	screenHeight = 712
+)
+
+type Blocks struct {
 	state   *gamestate.GameState
 	sprites tetrissprites.Sprites
 }
 
-func NewBlocksLayer(state *gamestate.GameState, sprites tetrissprites.Sprites) *BlocksLayer {
-	return &BlocksLayer{
+func NewBlocks(state *gamestate.GameState, sprites tetrissprites.Sprites) *Blocks {
+	return &Blocks{
 		state:   state,
 		sprites: sprites,
 	}
 }
 
-func (b *BlocksLayer) Update(window *pixelgl.Window) {
+func (b *Blocks) Update(window *pixelgl.Window) {
 	for row := range b.state.Board().Blocks {
 		for col := range b.state.Board().Blocks[row] {
 			block := b.state.Board().Blocks[row][col]

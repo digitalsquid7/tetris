@@ -1,4 +1,4 @@
-package screenupdater
+package layer
 
 import (
 	"image/color"
@@ -9,19 +9,19 @@ import (
 	"github.com/gopxl/pixel/pixelgl"
 )
 
-type TetrominoLayer struct {
+type Tetromino struct {
 	state   *gamestate.GameState
 	sprites tetrissprites.Sprites
 }
 
-func NewTetrominoLayer(state *gamestate.GameState, sprites tetrissprites.Sprites) *TetrominoLayer {
-	return &TetrominoLayer{
+func NewTetromino(state *gamestate.GameState, sprites tetrissprites.Sprites) *Tetromino {
+	return &Tetromino{
 		state:   state,
 		sprites: sprites,
 	}
 }
 
-func (b *TetrominoLayer) Update(window *pixelgl.Window) {
+func (b *Tetromino) Update(window *pixelgl.Window) {
 	sprite := b.state.CurrentTetromino().BlockSprite()
 
 	for _, coor := range b.state.GhostCoordinates() {
