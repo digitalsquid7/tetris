@@ -99,10 +99,16 @@ func (b *Board) UpdateFullRows() {
 }
 
 func (b *Board) updateOpacity() {
-	percentage := uint8((float64(b.ClearEndTime.Sub(time.Now())) / float64(b.ClearEndTime.Sub(b.ClearStartTime))) * 100)
+	blockDuration := b.ClearEndTime.Sub(b.ClearStartTime) / 10
 
 	for _, fullRow := range b.FullRows {
 		for col := range b.Blocks[fullRow] {
+			currEndTime := b.ClearStartTime.Add(blockDuration * time.Duration(col+1))
+			if currEndTime.Before(time.Now()) {
+				b.Blocks[fullRow][col].Opacity = 0
+				continue
+			}
+			percentage := uint8((float64(currEndTime.Sub(time.Now())) / float64(currEndTime.Sub(b.ClearStartTime))) * 100)
 			b.Blocks[fullRow][col].Opacity = percentage
 		}
 	}
