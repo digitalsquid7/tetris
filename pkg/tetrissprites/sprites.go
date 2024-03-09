@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	_ "image/png"
-	"log/slog"
 	"os"
 
 	"github.com/gopxl/pixel"
@@ -32,68 +31,58 @@ const (
 	Next            Name = "Next"
 )
 
+var fileByName = map[Name]string{
+	BlueBlock:       "assets/images/blocks/blue_block/blue_block.png",
+	CyanBlock:       "assets/images/blocks/cyan_block/cyan_block.png",
+	GreenBlock:      "assets/images/blocks/green_block/green_block.png",
+	PinkBlock:       "assets/images/blocks/pink_block/pink_block.png",
+	PurpleBlock:     "assets/images/blocks/purple_block/purple_block.png",
+	RedBlock:        "assets/images/blocks/red_block/red_block.png",
+	YellowBlock:     "assets/images/blocks/yellow_block/yellow_block.png",
+	BlueTetromino:   "assets/images/blocks/blue_block/blue_T1.png",
+	CyanTetromino:   "assets/images/blocks/cyan_block/cyan_Z1.png",
+	GreenTetromino:  "assets/images/blocks/green_block/green_l1.png",
+	PinkTetromino:   "assets/images/blocks/pink_block/pink_J1.png",
+	PurpleTetromino: "assets/images/blocks/purple_block/purple_I1.png",
+	RedTetromino:    "assets/images/blocks/red_block/red_O1.png",
+	YellowTetromino: "assets/images/blocks/yellow_block/yellow_S1.png",
+	Border:          "assets/images/UI/border/border.png",
+	Hold:            "assets/images/UI/hold/hold.png",
+	Next:            "assets/images/UI/next/next.png",
+}
+
 type Sprites map[Name]*pixel.Sprite
 
-type Loader struct {
-	logger     *slog.Logger
-	fileByName map[Name]string
-}
-
-func NewLoader(logger *slog.Logger) *Loader {
-	fileByName := map[Name]string{
-		BlueBlock:       "assets/images/blocks/blue_block/blue_block.png",
-		CyanBlock:       "assets/images/blocks/cyan_block/cyan_block.png",
-		GreenBlock:      "assets/images/blocks/green_block/green_block.png",
-		PinkBlock:       "assets/images/blocks/pink_block/pink_block.png",
-		PurpleBlock:     "assets/images/blocks/purple_block/purple_block.png",
-		RedBlock:        "assets/images/blocks/red_block/red_block.png",
-		YellowBlock:     "assets/images/blocks/yellow_block/yellow_block.png",
-		BlueTetromino:   "assets/images/blocks/blue_block/blue_T1.png",
-		CyanTetromino:   "assets/images/blocks/cyan_block/cyan_Z1.png",
-		GreenTetromino:  "assets/images/blocks/green_block/green_l1.png",
-		PinkTetromino:   "assets/images/blocks/pink_block/pink_J1.png",
-		PurpleTetromino: "assets/images/blocks/purple_block/purple_I1.png",
-		RedTetromino:    "assets/images/blocks/red_block/red_O1.png",
-		YellowTetromino: "assets/images/blocks/yellow_block/yellow_S1.png",
-		Border:          "assets/images/UI/border/border.png",
-		Hold:            "assets/images/UI/hold/hold.png",
-		Next:            "assets/images/UI/next/next.png",
-	}
-
-	return &Loader{
-		fileByName: fileByName,
-		logger:     logger,
-	}
-}
-
-func (l *Loader) Load() (Sprites, error) {
-	sprts := make(Sprites)
-	for name, file := range l.fileByName {
-		picture, err := l.loadPicture(file)
+func Load() (Sprites, error) {
+	sprites := make(Sprites)
+	for name, file := range fileByName {
+		picture, err := loadPicture(file)
 		if err != nil {
 			return nil, fmt.Errorf("load image: %w", err)
 		}
 
-		sprts[name] = pixel.NewSprite(picture, picture.Bounds())
+		sprites[name] = pixel.NewSprite(picture, picture.Bounds())
 	}
 
-	return sprts, nil
+	return sprites, nil
 }
 
-func (l *Loader) loadPicture(path string) (pixel.Picture, error) {
-	file, err := os.Open(path)
+func loadPicture(path string) (pic pixel.Picture, err error) {
+	var file *os.File
+	file, err = os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("open file: %w", err)
 	}
 
-	defer func(file *os.File) {
+	defer func() {
 		closeErr := file.Close()
-		if closeErr != nil {
-			l.logger.Error(closeErr.Error())
+		if err != nil {
+			err = closeErr
 		}
-	}(file)
+	}()
 
-	img, _, err := image.Decode(file)
+	var img image.Image
+	img, _, err = image.Decode(file)
 	if err != nil {
 		return nil, fmt.Errorf("decode image: %w", err)
 	}

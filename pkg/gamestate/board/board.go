@@ -70,7 +70,7 @@ func (b *Board) LockInPlace(tetromino *tetromino.Tetromino) {
 	}
 }
 
-func (b *Board) ClearLines() {
+func (b *Board) ClearLines() bool {
 	b.ClearStartTime = time.Now()
 	b.ClearEndTime = b.ClearStartTime.Add(time.Millisecond * 500)
 
@@ -83,22 +83,26 @@ nextRow:
 		}
 		b.FullRows = append(b.FullRows, row)
 	}
-}
 
-func (b *Board) ClearLinesInProgress() bool {
 	return len(b.FullRows) > 0
 }
 
-func (b *Board) UpdateFullRows() {
+func (b *Board) UpdateFullRows() bool {
+	if len(b.FullRows) == 0 {
+		return false
+	}
+
 	if time.Now().Before(b.ClearEndTime) {
 		b.updateOpacity()
-		return
+		return true
 	}
 	b.shiftLines()
 	b.FullRows = make([]int, 0)
+	return false
 }
 
 func (b *Board) updateOpacity() {
+	now := time.Now()
 	blockDuration := b.ClearEndTime.Sub(b.ClearStartTime) / 10
 
 	for _, fullRow := range b.FullRows {
@@ -108,7 +112,9 @@ func (b *Board) updateOpacity() {
 				b.Blocks[fullRow][col].Opacity = 0
 				continue
 			}
-			percentage := uint8((float64(currEndTime.Sub(time.Now())) / float64(currEndTime.Sub(b.ClearStartTime))) * 100)
+
+			percentage := uint8((float64(currEndTime.Sub(now)) /
+				float64(currEndTime.Sub(b.ClearStartTime))) * 100)
 			b.Blocks[fullRow][col].Opacity = percentage
 		}
 	}

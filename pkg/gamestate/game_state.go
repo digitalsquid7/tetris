@@ -3,6 +3,7 @@ package gamestate
 import (
 	"time"
 
+	"github.com/digitalsquid7/tetris/pkg/gameevent"
 	"github.com/digitalsquid7/tetris/pkg/gamestate/board"
 	"github.com/digitalsquid7/tetris/pkg/gamestate/coordinate"
 	"github.com/digitalsquid7/tetris/pkg/gamestate/direction"
@@ -10,7 +11,17 @@ import (
 	"github.com/digitalsquid7/tetris/pkg/gamestate/tetrominoqueue"
 )
 
+const (
+	moveDelay                        = time.Millisecond * 50
+	automaticDropDelay time.Duration = time.Millisecond * 500
+)
+
+type Publisher interface {
+	Publish(name gameevent.Name)
+}
+
 type GameState struct {
+	publisher        Publisher
 	board            *board.Board
 	currentTetromino *tetromino.Tetromino
 	tetrominoQueue   *tetrominoqueue.TetrominoQueue
@@ -20,21 +31,22 @@ type GameState struct {
 	moveStart        time.Time
 	moveDelay        <-chan time.Time
 	dropDelay        <-chan time.Time
-	downTicker       <-chan time.Time
+	downTicker       *time.Ticker
 }
 
-func New() *GameState {
+func New(publisher *gameevent.Publisher) *GameState {
 	tetrisBoard := board.NewBoard()
 	tetrominoQueue := tetrominoqueue.New(tetrisBoard)
 	tetrominoQueue.GenerateTetrominos()
 
 	return &GameState{
+		publisher:        publisher,
 		board:            tetrisBoard,
 		currentTetromino: tetrominoQueue.Pop(),
 		tetrominoQueue:   tetrominoQueue,
-		moveDelay:        time.Tick(time.Millisecond * 50),
-		dropDelay:        time.Tick(time.Millisecond * 50),
-		downTicker:       time.Tick(time.Millisecond * 500),
+		moveDelay:        time.Tick(moveDelay),
+		dropDelay:        time.Tick(moveDelay),
+		downTicker:       time.NewTicker(automaticDropDelay),
 	}
 }
 
@@ -52,7 +64,9 @@ func (g *GameState) HeldTetromino() *tetromino.Tetromino {
 
 func (g *GameState) ReplaceTetromino() {
 	g.newTetromino()
-	g.board.ClearLines()
+	if g.board.ClearLines() {
+		g.publisher.Publish(gameevent.LineClear)
+	}
 	g.tetrominoSwapped = false
 }
 
@@ -70,9 +84,10 @@ func (g *GameState) HoldTetromino() {
 		g.newTetromino()
 	} else {
 		g.tetrominoHeld, g.currentTetromino = g.currentTetromino, g.tetrominoHeld
-		g.currentTetromino.ResetPosition()
+		g.resetTetromino()
 	}
 
+	g.publisher.Publish(gameevent.HoldTetromino)
 	g.tetrominoSwapped = true
 }
 
@@ -106,6 +121,7 @@ func (g *GameState) MoveDown() bool {
 	if g.collision(direction.Down) {
 		g.board.LockInPlace(g.currentTetromino)
 		g.ReplaceTetromino()
+		g.publisher.Publish(gameevent.Drop)
 		return true
 	}
 
@@ -131,6 +147,7 @@ func (g *GameState) HardDrop() {
 	}
 
 	g.board.LockInPlace(g.currentTetromino)
+	g.publisher.Publish(gameevent.Drop)
 	g.ReplaceTetromino()
 }
 
@@ -142,14 +159,12 @@ func (g *GameState) RotateAntiClockwise() {
 	g.updateDirection(g.currentTetromino.Direction().AntiClockwise())
 }
 
-func (g *GameState) AutomaticDrop() bool {
+func (g *GameState) AutomaticDrop() {
 	select {
-	case <-g.downTicker:
-		return true
+	case <-g.downTicker.C:
+		g.MoveDown()
 	default:
 	}
-
-	return false
 }
 
 func (g *GameState) GhostCoordinates() []coordinate.Coordinate {
@@ -170,6 +185,7 @@ func (g *GameState) TopOut() bool {
 			g.currentTetromino.MoveUp(1)
 		}
 		g.gameOver = true
+		g.publisher.Publish(gameevent.GameOver)
 	}
 
 	return g.gameOver
@@ -177,6 +193,11 @@ func (g *GameState) TopOut() bool {
 
 func (g *GameState) GameOver() bool {
 	return g.gameOver
+}
+
+func (g *GameState) resetTetromino() {
+	g.currentTetromino.ResetPosition()
+	g.downTicker.Reset(automaticDropDelay)
 }
 
 func (g *GameState) newTetromino() {
@@ -207,18 +228,21 @@ func (g *GameState) updateDirection(dir direction.Direction) {
 
 	if g.board.FreeSpace(coors) {
 		g.currentTetromino.SetDirection(dir)
+		g.publisher.Publish(gameevent.Rotate)
 		return
 	}
 
 	if amount, ok := g.freeSpaceWithShift(coors, direction.Right); ok {
 		g.currentTetromino.SetDirection(dir)
 		g.currentTetromino.MoveRight(amount)
+		g.publisher.Publish(gameevent.Rotate)
 		return
 	}
 
 	if amount, ok := g.freeSpaceWithShift(coors, direction.Left); ok {
 		g.currentTetromino.SetDirection(dir)
 		g.currentTetromino.MoveLeft(amount)
+		g.publisher.Publish(gameevent.Rotate)
 	}
 }
 func (g *GameState) freeSpaceWithShift(coors []coordinate.Coordinate, direction direction.Direction) (int, bool) {

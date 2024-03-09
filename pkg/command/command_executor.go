@@ -22,20 +22,15 @@ func (e *Executor) Execute() {
 		return
 	}
 
-	if e.state.Board().ClearLinesInProgress() {
-		e.state.Board().UpdateFullRows()
-		return
-	}
-
 	if e.state.TopOut() {
 		return
 	}
 
-	if e.state.AutomaticDrop() {
-		if e.state.MoveDown() {
-			return
-		}
+	if e.state.Board().UpdateFullRows() {
+		return
 	}
+
+	e.state.AutomaticDrop()
 
 	if e.window.JustPressed(pixelgl.KeySpace) {
 		e.state.HardDrop()
@@ -85,6 +80,7 @@ func (e *Executor) rotate() {
 	}
 
 	if e.window.JustPressed(pixelgl.KeyE) {
+
 		e.state.RotateClockwise()
 		return
 	}

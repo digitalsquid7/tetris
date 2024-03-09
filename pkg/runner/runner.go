@@ -4,12 +4,17 @@ import (
 	"fmt"
 	_ "image/png"
 	"log/slog"
+	"time"
 
+	"github.com/digitalsquid7/tetris/pkg/audioupdater"
 	"github.com/digitalsquid7/tetris/pkg/command"
 	"github.com/digitalsquid7/tetris/pkg/config"
+	"github.com/digitalsquid7/tetris/pkg/gameevent"
 	"github.com/digitalsquid7/tetris/pkg/gamestate"
 	"github.com/digitalsquid7/tetris/pkg/screenupdater"
+	"github.com/digitalsquid7/tetris/pkg/tetrisaudio"
 	"github.com/digitalsquid7/tetris/pkg/tetrissprites"
+	"github.com/faiface/beep/speaker"
 	"github.com/gopxl/pixel/pixelgl"
 )
 
@@ -34,20 +39,37 @@ func (r *Runner) gameLoop() error {
 		return fmt.Errorf("create new window: %w", err)
 	}
 
-	spritesLoader := tetrissprites.NewLoader(r.logger)
-
-	sprites, err := spritesLoader.Load()
+	sprites, err := tetrissprites.Load()
 	if err != nil {
 		return fmt.Errorf("load sprites: %w", err)
 	}
 
-	gameState := gamestate.New()
-	commandExecutor := command.NewExecutor(gameState, window)
-	screenUpdater := screenupdater.New(gameState, window, sprites)
+	audio, err := tetrisaudio.Load()
+	if err != nil {
+		return fmt.Errorf("load audio: %w", err)
+	}
+
+	err = speaker.Init(audio.SampleRate(), audio.SampleRate().N(time.Second/10))
+	if err != nil {
+		return fmt.Errorf("init audio: %w", err)
+	}
+
+	publisher := gameevent.NewPublisher()
+	state := gamestate.New(publisher)
+	commandExecutor := command.NewExecutor(state, window)
+	screenUpdater := screenupdater.New(state, window, sprites)
+	audioUpdater := audioupdater.New(audio)
+
+	publisher.Subscribe(audioUpdater)
 
 	for !window.Closed() {
 		commandExecutor.Execute()
 		screenUpdater.Update()
+
+		err = publisher.Notify()
+		if err != nil {
+			return fmt.Errorf("notify subscribers: %w", err)
+		}
 	}
 
 	return nil
