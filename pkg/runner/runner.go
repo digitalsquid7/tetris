@@ -34,7 +34,10 @@ func (r *Runner) Run() {
 }
 
 func (r *Runner) gameLoop() error {
-	window, err := pixelgl.NewWindow(config.WindowConfig)
+	tetrisConfig := config.LoadTetris()
+	windowConfig := config.LoadWindow()
+
+	window, err := pixelgl.NewWindow(windowConfig)
 	if err != nil {
 		return fmt.Errorf("create new window: %w", err)
 	}
@@ -58,13 +61,15 @@ func (r *Runner) gameLoop() error {
 	state := gamestate.New(publisher)
 	commandExecutor := command.NewExecutor(state, window)
 	screenUpdater := screenupdater.New(state, window, sprites)
-	audioUpdater := audioupdater.New(audio)
+	publisher.Subscribe(screenUpdater)
 
-	publisher.Subscribe(audioUpdater)
+	if tetrisConfig.EnableSounds {
+		audioUpdater := audioupdater.New(audio)
+		publisher.Subscribe(audioUpdater)
+	}
 
 	for !window.Closed() {
 		commandExecutor.Execute()
-		screenUpdater.Update()
 
 		err = publisher.Notify()
 		if err != nil {

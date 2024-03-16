@@ -70,7 +70,7 @@ func (b *Board) LockInPlace(tetromino *tetromino.Tetromino) {
 	}
 }
 
-func (b *Board) ClearLines() bool {
+func (b *Board) ClearLines() int {
 	b.ClearStartTime = time.Now()
 	b.ClearEndTime = b.ClearStartTime.Add(time.Millisecond * 500)
 
@@ -84,7 +84,7 @@ nextRow:
 		b.FullRows = append(b.FullRows, row)
 	}
 
-	return len(b.FullRows) > 0
+	return len(b.FullRows)
 }
 
 func (b *Board) UpdateFullRows() bool {

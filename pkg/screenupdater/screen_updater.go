@@ -1,6 +1,7 @@
 package screenupdater
 
 import (
+	"github.com/digitalsquid7/tetris/pkg/gameevent"
 	"github.com/digitalsquid7/tetris/pkg/gamestate"
 	"github.com/digitalsquid7/tetris/pkg/screenupdater/layer"
 	"github.com/digitalsquid7/tetris/pkg/tetrissprites"
@@ -32,11 +33,12 @@ func New(
 			layer.NewUI(state, sprites),
 			layer.NewBlocks(state, sprites),
 			layer.NewTetromino(state, sprites),
+			layer.NewScore(state, sprites),
 		},
 	}
 }
 
-func (l *ScreenUpdater) Update() {
+func (l *ScreenUpdater) Update(_ gameevent.Events) error {
 	l.window.Clear(colornames.Black)
 
 	for _, layer := range l.tetrisLayers {
@@ -44,4 +46,5 @@ func (l *ScreenUpdater) Update() {
 	}
 
 	l.window.Update()
+	return nil
 }

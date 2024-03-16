@@ -20,6 +20,13 @@ type Publisher interface {
 	Publish(name gameevent.Name)
 }
 
+var scoreByLinesCleared = map[int]int{
+	1: 1,
+	2: 3,
+	3: 5,
+	4: 8,
+}
+
 type GameState struct {
 	publisher        Publisher
 	board            *board.Board
@@ -28,9 +35,12 @@ type GameState struct {
 	tetrominoHeld    *tetromino.Tetromino
 	tetrominoSwapped bool
 	gameOver         bool
+	level            int
+	linesCleared     int
+	score            int
 	moveStart        time.Time
-	moveDelay        <-chan time.Time
-	dropDelay        <-chan time.Time
+	moveDelay        *time.Ticker
+	dropDelay        *time.Ticker
 	downTicker       *time.Ticker
 }
 
@@ -44,14 +54,23 @@ func New(publisher *gameevent.Publisher) *GameState {
 		board:            tetrisBoard,
 		currentTetromino: tetrominoQueue.Pop(),
 		tetrominoQueue:   tetrominoQueue,
-		moveDelay:        time.Tick(moveDelay),
-		dropDelay:        time.Tick(moveDelay),
-		downTicker:       time.NewTicker(automaticDropDelay),
+		level:            1,
+		moveDelay:        time.NewTicker(moveDelay),
+		dropDelay:        time.NewTicker(moveDelay),
+		downTicker:       time.NewTicker(getAutomaticDropDelay(1)),
 	}
 }
 
 func (g *GameState) Board() *board.Board {
 	return g.board
+}
+
+func (g *GameState) Level() int {
+	return g.level
+}
+
+func (g *GameState) Score() int {
+	return g.score
 }
 
 func (g *GameState) CurrentTetromino() *tetromino.Tetromino {
@@ -64,9 +83,16 @@ func (g *GameState) HeldTetromino() *tetromino.Tetromino {
 
 func (g *GameState) ReplaceTetromino() {
 	g.newTetromino()
-	if g.board.ClearLines() {
+
+	total := g.board.ClearLines()
+	if total > 0 {
+		g.linesCleared += total
+		g.level = (g.linesCleared / 10) + 1
+		g.downTicker.Reset(getAutomaticDropDelay(g.level))
+		g.score += scoreByLinesCleared[total]
 		g.publisher.Publish(gameevent.LineClear)
 	}
+
 	g.tetrominoSwapped = false
 }
 
@@ -131,7 +157,7 @@ func (g *GameState) MoveDown() bool {
 
 func (g *GameState) SoftDrop() {
 	select {
-	case <-g.dropDelay:
+	case <-g.dropDelay.C:
 		g.MoveDown()
 	default:
 	}
@@ -215,7 +241,7 @@ func (g *GameState) movable() bool {
 	}
 
 	select {
-	case <-g.moveDelay:
+	case <-g.moveDelay.C:
 		return true
 	default:
 	}
@@ -249,7 +275,6 @@ func (g *GameState) freeSpaceWithShift(coors []coordinate.Coordinate, direction 
 	shifted := g.shiftCoordinates(coors, direction)
 	amount := 1
 
-	// There may be 2 blocks extending from the pivot in the case of "I", so need to try shifting up to 2 blocks away
 	if !g.board.InSideBounds(shifted) {
 		shifted = g.shiftCoordinates(shifted, direction)
 		amount++
@@ -292,4 +317,9 @@ func (g *GameState) shiftCoordinates(coordinates []coordinate.Coordinate, shift 
 	}
 
 	return shifted
+}
+
+func getAutomaticDropDelay(level int) time.Duration {
+	multiplier := 0.8 - ((float64(level - 1)) * 0.007)
+	return time.Duration(multiplier * float64(time.Second))
 }
