@@ -3,7 +3,7 @@
 My remake of the classic arcade game Tetris. Written in Go and uses the 2D game engine `pixel`.
 I took what I learnt from my snake remake project and improved on it here.
 
-![](https://giphy.com/gifs/tVH8cpnj09YIr1OwiH)
+![](https://media3.giphy.com/media/tVH8cpnj09YIr1OwiH/giphy.gif)
 
 ## How to run
 
